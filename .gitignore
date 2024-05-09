@@ -1,5 +1,7 @@
 # data
 /data/allen/
+/data/monkey_reaching_preload_smth_40/
+/data/synthetic/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
