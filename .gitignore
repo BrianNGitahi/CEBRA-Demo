@@ -3,6 +3,8 @@
 /data/monkey_reaching_preload_smth_40/
 /data/synthetic/
 
+embeddings.pkl
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
