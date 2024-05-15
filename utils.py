@@ -23,7 +23,7 @@ import sklearn.linear_model
 
 #--------------------------------------------------------------------
 # function to view the ideal embedding from different angles
-def view_embedding(embed1, embed2, label, label_class, titles, s=0.0001, n_angles=3):
+def view_embedding(embed1, embed2, label, label_class, titles, main_title="Different Angles", s=0.0001, n_angles=3):
 
     fig1=plt.figure(figsize=(8,4*n_angles))
     gs = gridspec.GridSpec(n_angles, 2, figure=fig1)
@@ -49,6 +49,8 @@ def view_embedding(embed1, embed2, label, label_class, titles, s=0.0001, n_angle
             cebra.plot_embedding(embedding=embed2[value,:], embedding_labels=label[value], ax=ax2, markersize=s,title=titles[1],cmap=c[j])
 
             plt.tight_layout()
+
+        plt.suptitle(main_title)
 
 #-------------------------------------------------------------------
 
