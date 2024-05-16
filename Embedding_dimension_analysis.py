@@ -53,7 +53,6 @@ n_trials = 1765
 # get the choice time 
 choice_times = df_trials_ses['choice_time'][0:n_trials].to_numpy()
 
-
 # %%
 # dimensions to loop over  
 dimensions = np.concatenate([np.arange(1,10),np.arange(10,90,10)])
@@ -68,7 +67,7 @@ t_embeds = []
 
 
 #%%
-
+# define number of runs to get error bars
 n_iterations = 5
 
 for d in dimensions:
@@ -106,8 +105,9 @@ for d in dimensions:
     # store the mean and the standard deviation 
     mean_scores.append(np.mean(scores))
     errors.append(np.std(scores))
-#%%
+    print("COMPLETED analysis of dimension {} out of 80".format(d))
 
+#%%
 # convert list of sd values to array
 errors = np.array(errors)
 
@@ -118,7 +118,7 @@ plt.ylabel("AUC Score")
 plt.title("AUC score (logistic regression) vs embedding dim")
 plt.savefig('AUC vs embedding dimension.png')
 
-
+#%%
 
 
 

@@ -18,6 +18,13 @@ from sklearn.decomposition import PCA
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.animation import FuncAnimation
 
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import precision_recall_curve 
+from sklearn.metrics import confusion_matrix
+from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_auc_score
+from sklearn.metrics import auc
+
 from matplotlib.collections import LineCollection
 import sklearn.linear_model
 
@@ -310,5 +317,46 @@ def individual_datasets(traces_):
         datasets.append(f_array)
 
     return datasets
+
+#--------------------------------------------------------------------
+
+# define function to get the auc scores
+def get_auc(set_of_embeddings,trial_labels, n_iterations=5):   
+
+     # list to store mean auc scores at each of these embedding dimensions
+    mean_scores = []
+    errors = []
+
+    for j, embedding in enumerate(set_of_embeddings):
+
+        # quantify with AUC score
+        scores = []
+
+        # for each NM make a couple of runs of the log regression model to get error bars
+        for i in range(n_iterations):
+
+            # make logistic function, fit it and use it to predict the initial labels from the embedding
+            logreg = LogisticRegression(random_state=42)
+            logreg.fit(embedding, trial_labels)
+            prediction = logreg.predict(embedding)
+
+            # quantify how well the embedding mirrors the labels using the auc score
+
+            # make a precision recall curve and get the threshold
+            precision, recall, threshold = precision_recall_curve(trial_labels, prediction)
+            threshold = np.concatenate([np.array([0]), threshold])
+
+            # calculate the fpr and tpr for all thresholds of the classification
+            fpr, tpr, threshold = roc_curve(trial_labels, prediction)
+
+            # get the auc score and append it to the list
+            roc_auc = auc(fpr, tpr)
+            scores.append(roc_auc)
+
+        # store the mean and the standard deviation 
+        mean_scores.append(np.mean(scores))
+        errors.append(np.std(scores))
+
+    return mean_scores, errors
 
 #--------------------------------------------------------------------
