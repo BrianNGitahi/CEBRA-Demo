@@ -23,7 +23,7 @@ import sklearn.linear_model
 
 #--------------------------------------------------------------------
 # function to view the ideal embedding from different angles
-def view_embedding(embed1, embed2, label, label_class, titles, main_title="Different Angles", s=0.0001, n_angles=3):
+def view_embedding(embed1, embed2, label, label_class, titles=['time embedding','behaviour_embedding'], main_title="Different Angles", s=0.8, n_angles=2):
 
     fig1=plt.figure(figsize=(8,4*n_angles))
     gs = gridspec.GridSpec(n_angles, 2, figure=fig1)
@@ -55,31 +55,260 @@ def view_embedding(embed1, embed2, label, label_class, titles, main_title="Diffe
 #-------------------------------------------------------------------
 
 # function to build, train and compute an embedding
-def base_embed(input, mode='time', arch = 'offset10-model-mse', dist = 'euclidean', b_label=None, temp=1, dimension=3, lr = 3e-4, d=0.1, iters = 2000):
+def build_train_compute(neural_data, b_label, max_iterations=2000, d=3):
 
-    # build CEBRA model
-    model = CEBRA(model_architecture=arch,
-                         batch_size=512,
-                         learning_rate=lr,
-                         temperature=int(temp),
-                         output_dimension = int(dimension),
-                         max_iterations=int(iters),
-                         distance=dist,
-                         delta=int(d),
-                         conditional=mode,
-                         device='cuda_if_available',
-                         verbose=True,
-                         time_offsets=10)
-    
-    # train using label if it's a behaviour model
-    train_size = int(input.shape[0])
 
-    if mode == 'time':
-        model.fit(input[:train_size])
-    if mode == 'delta':
-        model.fit(input[:train_size],b_label[:train_size])
+    # build time and behaviour models
+    cebra_time_model = CEBRA(model_architecture='offset10-model-mse',
+                        batch_size=512,
+                        learning_rate=3e-4,
+                        temperature=1,
+                        output_dimension=d,
+                        max_iterations=max_iterations,
+                        distance='euclidean',
+                        conditional='time',
+                        device='cuda_if_available',
+                        verbose=True,
+                        time_offsets=10) 
 
-    embedding = model.transform(input)
-    return model, embedding
+    cebra_behaviour_model = CEBRA(model_architecture='offset10-model-mse',
+                        batch_size=512,
+                        learning_rate=3e-4,
+                        temperature=1,
+                        output_dimension=d,
+                        max_iterations=max_iterations,
+                        distance='euclidean',
+                        conditional='time_delta',
+                        device='cuda_if_available',
+                        verbose=True,
+                        time_offsets=10)
+
+    # train them both
+    cebra_time_model.fit(neural_data)
+    cebra_behaviour_model.fit(neural_data, b_label)
+
+    # compute the embeddings
+    time_embedding = cebra_time_model.transform(neural_data)
+    behaviour_embedding = cebra_behaviour_model.transform(neural_data)
+
+    # return the embeddings 
+
+    return time_embedding, behaviour_embedding
+
+#--------------------------------------------------------------------
+
+# divide the labels into rewarded and unrewarded
+def define_label_classes(trial_labels):
+
+    rewarded = trial_labels==1
+    unrewarded = trial_labels==0
+
+    rewarded = rewarded.flatten()
+    unrewarded = unrewarded.flatten()
+
+    return rewarded, unrewarded
+
+#--------------------------------------------------------------------
+
+def view(time_embedding, behaviour_embedding, labels, label_classes, title ="Different Angles", size=0.8):
+ 
+    # create a figure and make the plots
+    fig = plt.figure(figsize=(14,8))
+    gs = gridspec.GridSpec(1, 2, figure=fig)
+
+
+    ax81 = fig.add_subplot(gs[0,0], projection='3d')
+    ax82 = fig.add_subplot(gs[0,1], projection='3d')
+    ax81.axis('off')
+    ax82.axis('off')
+
+
+    # colour maps
+    colours = ['cool', 'plasma', 'spring']
+
+    # plot the time embedding 
+    cebra.plot_embedding(embedding=time_embedding[label_classes[0],:], embedding_labels=labels[label_classes[0]],ax=ax81, markersize=0.7, title='Time embedding', cmap=colours[0])
+    cebra.plot_embedding(embedding=time_embedding[label_classes[1],:], embedding_labels=labels[label_classes[1]],ax=ax81, markersize=0.7, title='Time embedding', cmap=colours[1])
+
+
+    # plot the behaviour embedding 
+    cebra.plot_embedding(embedding=behaviour_embedding[label_classes[0],:], embedding_labels=labels[label_classes[0]],ax=ax82, markersize=0.7, title='Behaviour embedding', cmap=colours[0],)
+    cebra.plot_embedding(embedding=behaviour_embedding[label_classes[1],:], embedding_labels=labels[label_classes[1]],ax=ax82,markersize=0.7, title='Behaviour embedding',  cmap=colours[1])
+
+    gs.tight_layout(figure=fig)
+
+    print("preparing figure at multiple angles")
+
+    # then view it at multiple angles
+    view_embedding(time_embedding, behaviour_embedding,s=size,label=labels,label_class=label_classes, titles=['time embedding','behaviour_embedding'], main_title=title)
+
+#--------------------------------------------------------------------
+# Make a function to format the NM data into a 1s window around the choice
+
+def format_data(neural_data, df, trace_times_, choice_times_ , window=None , window_size=10, n_trials=1765):
+
+    # define the number of trials where the mouse made a choice
+    n_choice_trials = np.unique(np.isnan(choice_times_),return_counts=True)[1][0]
+
+    # list to hold all the 1s windows
+    n_data_window = []
+
+    # new trial label
+    trial_labels = []
+
+    # loop over all trials
+    for i in range(0,n_trials):
+
+        # skip trials where the animal didn't make a choice (null choice time)
+        if np.isnan(choice_times_[i]):
+            continue
+
+        # find the index of the closest time to the choice time in the trace_times array 
+        idx = np.abs(trace_times_ - choice_times_[i]).argmin()
+
+        # take the previous 10 and/or the next 10 values of the NM data at these indices - 1s window
+        if window =='before':
+            n_data_window.append(neural_data[idx-10:idx])
+
+        if window == 'after':
+            n_data_window.append(neural_data[idx:idx+10])
+
+        if window == None:
+            n_data_window.append(neural_data[idx-10:idx+10])
+
+        # label the timepoints as rewarded or unrewarded
+        if df['reward'].iloc[i]:
+            # new trial label
+            trial_labels.append(1)
+
+        elif df['reward'].iloc[i]==False:
+            # new trial label
+            trial_labels.append(0)
+
+
+    # stack the nm data for each trial
+    nms_HD = np.stack(n_data_window).reshape((n_choice_trials,-1))
+    # format it into a tensor
+    nms_HD = torch.from_numpy(nms_HD.astype(np.float64))
+    print("neural tensor shape: ", nms_HD.shape)
+
+    # convert trial labels into an array
+    trial_labels = np.array(trial_labels)
+    print("labels shape: ",trial_labels.shape)
+
+    return nms_HD, trial_labels
+
+#--------------------------------------------------------------------
+
+# for each NM combination
+def nm_analysis_(data, df_, t_times_, c_times_,window_=None,dimension=3,missing_nm=""):
+
+    # format the data into 1s window around the choice and create the labels
+    nms_HD, t_labels = format_data(data, df_, t_times_,c_times_, window=window_)
+
+    # Build and train the model then compute embeddings
+    t_embed, b_embed = build_train_compute(nms_HD, t_labels,d=dimension)
+
+    # define the label classes
+    rewarded, unrewarded = define_label_classes(t_labels)
+
+    # view the embeddings
+    view_embedding(t_embed, b_embed, t_labels,label_class=[rewarded, unrewarded],main_title=missing_nm)
+
+    return nms_HD,t_embed, b_embed, t_labels, [rewarded,unrewarded]
+#--------------------------------------------------------------------
+
+# for each NM combination
+def nm_analysis(data, df_, t_times_, c_times_,window_=None,dimension=3,missing_nm=""):
+
+    # format the data into 1s window around the choice and create the labels
+    nms_HD, t_labels = format_data(data, df_, t_times_,c_times_, window=window_)
+
+    # Build and train the model then compute embeddings
+    t_embed, b_embed = build_train_compute(nms_HD, t_labels,d=dimension)
+
+    # define the label classes
+    rewarded, unrewarded = define_label_classes(t_labels)
+
+    # view the embeddings
+    #view_embedding(t_embed, b_embed, t_labels,label_class=[rewarded, unrewarded],title=missing_nm)
+
+    return t_embed, b_embed, t_labels, [rewarded,unrewarded]
+
+#--------------------------------------------------------------------
+
+# first make function to make the plots given a list of embeddings
+def plot4_embeddings(embeddings, labels , l_class, titles=['DA only', 'NE only', '5HT only', 'ACh only'], t=""):
+
+    # number of plots
+    n_plots = len(embeddings)
+
+    # create axis
+    fig = plt.figure(figsize=(8,4*n_plots))
+    gs = gridspec.GridSpec(n_plots, 2, figure=fig)
+
+    # colour 
+    c = ['cool','plasma','pink','winter']
+
+    for i, embed in enumerate(embeddings):
+
+        # create the axes
+        ax1 = fig.add_subplot(gs[i // 2, i%2], projection='3d')
+
+        # plot the embedding
+        cebra.plot_embedding(embedding=embed[l_class[0],:], embedding_labels=labels[l_class[0]], ax=ax1, markersize=2,title=titles[i], cmap=c[0])
+        cebra.plot_embedding(embedding=embed[l_class[1],:], embedding_labels=labels[l_class[1]], ax=ax1, markersize=2,title=titles[i], cmap=c[1])
+
+    plt.suptitle(t)
+    plt.tight_layout()
+
+#--------------------------------------------------------------------
+
+# run nm analysis on mutliple nm datasets 
+def nm_analysis_2(data, df, trace_times, choice_times, title, window=None):
+
+    # collect embeddings, and the labels in lists
+    behaviour_embeddings = []
+    time_embedings =[]
+
+    # run the nm analysis on the individual nms
+    for i, dataset in enumerate(data):
+
+        t_embed, b_embed, t_labels, [rewarded,unrewarded] = nm_analysis(dataset, df, trace_times, choice_times, window_=window)[0]
+
+        behaviour_embeddings.append(b_embed)
+        time_embedings.append(t_embed)
+
+        # collect the labels and label classes for use in the plotting
+        # note that we assume they're the same for all datasets
+
+
+        print("COMPLETED ANALYSIS OF NM {}".format(i))
+
+    # plot them
+    plot4_embeddings(behaviour_embeddings,labels=t_labels,l_class=[rewarded,unrewarded],titles=title)
+
+    return behaviour_embeddings, time_embedings, t_labels, [rewarded,unrewarded]
+#--------------------------------------------------------------------
+
+# get the data as individual datasets of each nm
+def individual_datasets(traces_):
+
+    # create a list to hold the different NMs data
+    datasets = []
+
+    # loop through the traces
+    for trace in traces_.keys():
+
+        # select the trace of the current NM
+        array = np.array([traces_[trace]])
+
+        # format the array 
+        f_array = np.transpose(array)
+        f_array = f_array.astype(np.float64)
+        print("shape of formatted array:", f_array.shape)
+        datasets.append(f_array)
+
+    return datasets
 
 #--------------------------------------------------------------------
