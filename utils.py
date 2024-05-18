@@ -250,9 +250,12 @@ def plot4_embeddings(embeddings, labels , l_class, titles=['DA only', 'NE only',
     # number of plots
     n_plots = len(embeddings)
 
+    n_columns = 2
+    n_rows = n_plots//n_columns
+
     # create axis
     fig = plt.figure(figsize=(8,4*n_plots))
-    gs = gridspec.GridSpec(n_plots, 2, figure=fig)
+    gs = gridspec.GridSpec(n_rows, n_columns, figure=fig)
 
     # colour 
     c = ['cool','plasma','pink','winter']
@@ -260,13 +263,27 @@ def plot4_embeddings(embeddings, labels , l_class, titles=['DA only', 'NE only',
     for i, embed in enumerate(embeddings):
 
         # create the axes
-        ax1 = fig.add_subplot(gs[i // 2, i%2], projection='3d')
+        ax = fig.add_subplot(gs[i // n_columns, i%n_columns], projection='3d')
+
+        ax.set_xlabel("latent 1", labelpad=0.001, fontsize=13)
+        ax.set_ylabel("latent 2", labelpad=0.001, fontsize=13)
+        ax.set_zlabel("latent 3", labelpad=0.001, fontsize=13)
+
+        # Hide X and Y axes label marks
+        ax.xaxis.set_tick_params(labelbottom=False)
+        ax.yaxis.set_tick_params(labelleft=False)
+        ax.zaxis.set_tick_params(labelright=False)
+
+        # Hide X and Y axes tick marks
+        ax.set_xticks([])
+        ax.set_yticks([])
+        ax.set_zticks([])
 
         # plot the embedding
-        cebra.plot_embedding(embedding=embed[l_class[0],:], embedding_labels=labels[l_class[0]], ax=ax1, markersize=2,title=titles[i], cmap=c[0])
-        cebra.plot_embedding(embedding=embed[l_class[1],:], embedding_labels=labels[l_class[1]], ax=ax1, markersize=2,title=titles[i], cmap=c[1])
+        cebra.plot_embedding(embedding=embed[l_class[0],:], embedding_labels=labels[l_class[0]], ax=ax, markersize=2,title=titles[i], cmap=c[0])
+        cebra.plot_embedding(embedding=embed[l_class[1],:], embedding_labels=labels[l_class[1]], ax=ax, markersize=2,title=titles[i], cmap=c[1])
 
-    plt.suptitle(t)
+    plt.suptitle(t, fontsize=15)
     plt.tight_layout()
 
 #--------------------------------------------------------------------

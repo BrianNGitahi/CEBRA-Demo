@@ -112,7 +112,7 @@ for d in dimensions:
 errors = np.array(errors)
 
 # print the auc score vs the embedding dimension
-plt.errorbar(x=dimensions,y=mean_scores, yerr=errors)
+plt.errorbar(x=dimensions,y=mean_scores, yerr=errors, fmt='ro')
 plt.xlabel("Embedding dimension")
 plt.ylabel("AUC Score")
 plt.title("AUC score (logistic regression) vs embedding dim")
