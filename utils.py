@@ -298,7 +298,7 @@ def nm_analysis_2(data, df, trace_times, choice_times, title, window=None):
     # run the nm analysis on the individual nms
     for i, dataset in enumerate(data):
 
-        t_embed, b_embed, t_labels, [rewarded,unrewarded] = nm_analysis(dataset, df, trace_times, choice_times, window_=window)[0]
+        t_embed, b_embed, t_labels, [rewarded,unrewarded] = nm_analysis(dataset, df, trace_times, choice_times, window_=window)
 
         behaviour_embeddings.append(b_embed)
         time_embedings.append(t_embed)
@@ -310,10 +310,36 @@ def nm_analysis_2(data, df, trace_times, choice_times, title, window=None):
         print("COMPLETED ANALYSIS OF NM {}".format(i))
 
     # plot them
-    plot4_embeddings(behaviour_embeddings,labels=t_labels,l_class=[rewarded,unrewarded],titles=title)
+    #plot4_embeddings(behaviour_embeddings,labels=t_labels,l_class=[rewarded,unrewarded],titles=title)
 
     return behaviour_embeddings, time_embedings, t_labels, [rewarded,unrewarded]
 #--------------------------------------------------------------------
+
+# function to make datasets of combinations of 3 NMs
+# format the arrays
+def create_datasets(traces_):
+
+    # create a list to hold the different combinations of NM data
+    datasets = []
+
+    # iterate through the keys in the dictionary holding the NM data
+    for key in traces_:
+
+        # at each iteration make an array of NM data and exclude the current NM from the array
+        array = np.array([traces_[trace] for trace in traces_.keys() if trace !=key ])
+
+        # format the array 
+        f_array = np.transpose(array)
+        f_array = f_array.astype(np.float64)
+        print("shape of formatted array:", f_array.shape)
+        datasets.append(f_array)
+
+
+    return datasets
+
+#--------------------------------------------------------------------
+
+
 
 # get the data as individual datasets of each nm
 def individual_datasets(traces_):
@@ -338,7 +364,7 @@ def individual_datasets(traces_):
 #--------------------------------------------------------------------
 
 # define function to get the auc scores
-def get_auc(set_of_embeddings,trial_labels, n_iterations=5):   
+def get_auc(set_of_embeddings,trial_labels, n_iterations=1):   
 
      # list to store mean auc scores at each of these embedding dimensions
     mean_scores = []
