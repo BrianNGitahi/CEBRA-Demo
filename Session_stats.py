@@ -30,7 +30,13 @@ from sklearn.metrics import auc
 from matplotlib.collections import LineCollection
 import pandas as pd
 
+# data frame to collect stats from all sessions
+session_stats = pd.DataFrame(columns=["subject_ID", "ses_idx", "all4_AUC", "DA_AUC", "NE_AUC", "5HT_AUC", "ACh_AUC"])
 
+# for each session
+
+# 1. LOAD THE DATA
+#-----------------------------------------------------------------------------------------------
 #%%
 
 # load the dataframe
@@ -42,28 +48,43 @@ traces = pickle.load(open('/Users/brian.gitahi/Desktop/AIND/CEBRA/Git/CEBRA-Demo
 # load the trace times
 trace_times = np.load('/Users/brian.gitahi/Desktop/AIND/CEBRA/Git/CEBRA-Demo/data/CO data/Trace times.npy', allow_pickle=True)
 
-
 # Combine the traces for all NMs into one 2D array
 all_nms = np.array([traces[trace] for trace in traces.keys()])
 all_nms = np.transpose(all_nms)
 
+# changes
 n_trials = 1765
 
 # get the choice time 
 choice_times = df_trials_ses['choice_time'][0:n_trials].to_numpy()
 
-#%%
 
+# 2. RECORD THE SESSION DETAILS: animal, session index and signal average for each of the NMs
+#-------------------------------------------------------------------------------------------------
+
+# make sure that the df has only data from one session then record it as the session index
+n_sessions = np.size(np.unique(df_trials_ses['ses_idx'].values, return_counts=True)[0])
+
+if  n_sessions==1:
+    # get the subject ID and the session ID
+    session_stats['subject_ID'] = df_trials_ses['ses_idx'].iloc[0].split("_")[0]
+    session_stats["ses_idx"] = df_trials_ses['ses_idx']
+
+else:
+    print("THIS DATAFRAME HAS MORE THAN 1 SESSION: {}".format(df_trials_ses['ses_idx'].iloc[0]))
+
+    # THEN CONTINUE TO THE NEXT SESSION
+
+
+
+# 3. GET AUC SCORES: individual and all together + before and after choice
+#----------------------------------------------------------------------------------------------------
+#%%
 # Individual NMs AUC scores
 ind_nm_data = utils.individual_datasets(traces_=traces)
 b_embeds, t_embeds, labels, [rewarded, unrewarded] = utils.nm_analysis_2(ind_nm_data, df=df_trials_ses,trace_times=trace_times, choice_times=choice_times, title='Individual NMs')
 auc_scores, sds =  utils.get_auc(b_embeds, labels)
 
-#%%
-# Missing NMs AUC scores
-three_nm_data = utils.create_datasets(traces_=traces)
-b3_embeds, t3_embeds, labels3, [rewarded3, unrewarded3] = utils.nm_analysis_2(three_nm_data, df=df_trials_ses,trace_times=trace_times, choice_times=choice_times, title='3 NMs')
-auc3_scores, sds3 = utils.get_auc(b3_embeds, labels3)
 
 #%%
 # AUC Score for all of them
@@ -73,8 +94,8 @@ auca_scores, sds_a = utils.get_auc(ball_embeds, labels_all)
 
 #%%
 # Before and after choice AUC scores + (bonus) best two embedding pairs 
-b4b_embeds, b4t_embeds, labels_b4, [r, unr] = utils.nm_analysis_2(all_nms,window='before')
-afb_embeds, aft_embeds, labels_af, [r_af, unr_af] = utils.nm_analysis_2(all_nms, window='after')
+b4b_embeds, b4t_embeds, labels_b4, [r, unr] = utils.nm_analysis_2([all_nms],window='before')
+afb_embeds, aft_embeds, labels_af, [r_af, unr_af] = utils.nm_analysis_2([all_nms], window='after')
 
 auc_b4_scores, sds_b4 = utils.get_auc(b4b_embeds, labels_b4)
 auc_af_scores, sds_af = utils.get_auc(afb_embeds, labels_af)
@@ -82,22 +103,4 @@ auc_af_scores, sds_af = utils.get_auc(afb_embeds, labels_af)
 #%%
 # Signal Average in the 1 sec window
 
-
-#%%
-# bar graph of the AUC scores of all 4 individual NMs (before and after)
-
-    # loop over the 4 NMs in a dictionary?
-
-    # make a bar graph
-
-
-
-fig, ax = plt.subplots(layout='constrained')
-
-x = np.arange(0,4)
-width = 0.25
-
-# list containing AUC scores of before and after datasets of the 4 NMs
-
-scores = {'Before': array, 'After': array2}
 
