@@ -104,16 +104,16 @@ def build_train_compute(neural_data, b_label, max_iterations=2000, d=3):
 
 #--------------------------------------------------------------------
 
-# divide the labels into rewarded and unrewarded
+# divide the labels into positive and negative
 def define_label_classes(trial_labels):
 
-    rewarded = trial_labels==1
-    unrewarded = trial_labels==0
+    positive = trial_labels==1
+    negative = trial_labels==0
 
-    rewarded = rewarded.flatten()
-    unrewarded = unrewarded.flatten()
+    positive = positive.flatten()
+    negative = negative.flatten()
 
-    return rewarded, unrewarded
+    return positive, negative
 
 #--------------------------------------------------------------------
 
@@ -144,10 +144,10 @@ def view(time_embedding, behaviour_embedding, labels, label_classes, title ="Dif
 
     gs.tight_layout(figure=fig)
 
-    print("preparing figure at multiple angles")
+    #print("preparing figure at multiple angles")
 
     # then view it at multiple angles
-    view_embedding(time_embedding, behaviour_embedding,s=size,label=labels,label_class=label_classes, titles=['time embedding','behaviour_embedding'], main_title=title)
+    #view_embedding(time_embedding, behaviour_embedding,s=size,label=labels,label_class=label_classes, titles=['time embedding','behaviour_embedding'], main_title=title)
 
 #--------------------------------------------------------------------
 # Make a function to format the NM data into a 1s window around the choice
@@ -160,8 +160,11 @@ def format_data(neural_data, df, trace_times_, choice_times_ , window=None , win
     # list to hold all the 1s windows
     n_data_window = []
 
-    # new trial label
-    trial_labels = []
+    # new labels
+    reward_labels = []
+    choice_labels = []
+    n_licks = []
+
 
     # loop over all trials
     for i in range(0,n_trials):
@@ -186,12 +189,22 @@ def format_data(neural_data, df, trace_times_, choice_times_ , window=None , win
         # label the timepoints as rewarded or unrewarded
         if df['reward'].iloc[i]:
             # new trial label
-            trial_labels.append(1)
+            reward_labels.append(1)
 
         elif df['reward'].iloc[i]==False:
             # new trial label
-            trial_labels.append(0)
+            reward_labels.append(0)
+        
+        # label the timepoints as left or right choice
+        if df['licks L'].iloc[i] >= df['licks R'].iloc[i]:
+            # new trial label
+            choice_labels.append(1)
+            n_licks.append(df['licks L'].iloc[i])
 
+        elif df['licks R'].iloc[i] > df['licks L'].iloc[i]:
+            # new trial label
+            choice_labels.append(0)
+            n_licks.append(df['licks R'].iloc[i])
 
     # stack the nm data for each trial
     nms_HD = np.stack(n_data_window).reshape((n_choice_trials,-1))
@@ -200,47 +213,65 @@ def format_data(neural_data, df, trace_times_, choice_times_ , window=None , win
     print("neural tensor shape: ", nms_HD.shape)
 
     # convert trial labels into an array
-    trial_labels = np.array(trial_labels)
-    print("labels shape: ",trial_labels.shape)
+    reward_labels = np.array(reward_labels)
+    print("reward labels shape: ",reward_labels.shape)
 
-    return nms_HD, trial_labels
+    choice_labels = np.array(choice_labels)
+    print("choice labels shape: ",choice_labels.shape)
+
+
+
+    return nms_HD, reward_labels, choice_labels, n_licks
 
 #--------------------------------------------------------------------
 
 # for each NM combination
-def nm_analysis_(data, df_, t_times_, c_times_,window_=None,dimension=3,missing_nm=""):
+def nm_analysis_(data, df_, t_times_, c_times_,labels='reward',window_=None,dimension=3,missing_nm=""):
 
     # format the data into 1s window around the choice and create the labels
-    nms_HD, t_labels = format_data(data, df_, t_times_,c_times_, window=window_)
+    nms_HD, reward_labels, choice_labels, n_licks = format_data(data, df_, t_times_,c_times_, window=window_)
+
+    if labels=='reward':
+        trial_labels = reward_labels
+
+    if labels=='choice':
+        trial_labels = choice_labels
 
     # Build and train the model then compute embeddings
-    t_embed, b_embed = build_train_compute(nms_HD, t_labels,d=dimension)
+    t_embed, b_embed = build_train_compute(nms_HD,trial_labels,d=dimension)
 
     # define the label classes
-    rewarded, unrewarded = define_label_classes(t_labels)
+    rewarded, unrewarded = define_label_classes(trial_labels)
 
     # view the embeddings
-    view_embedding(t_embed, b_embed, t_labels,label_class=[rewarded, unrewarded],main_title=missing_nm)
+    view_embedding(t_embed, b_embed, trial_labels,label_class=[rewarded, unrewarded],main_title=missing_nm)
 
-    return nms_HD,t_embed, b_embed, t_labels, [rewarded,unrewarded]
+    return nms_HD,t_embed, b_embed, trial_labels, [rewarded,unrewarded]
 #--------------------------------------------------------------------
 
 # for each NM combination
-def nm_analysis(data, df_, t_times_, c_times_,window_=None,dimension=3,missing_nm=""):
+def nm_analysis(data, df_, t_times_, c_times_,labels='reward',window_=None,dimension=3,missing_nm=""):
 
     # format the data into 1s window around the choice and create the labels
-    nms_HD, t_labels = format_data(data, df_, t_times_,c_times_, window=window_)
+    nms_HD, reward_labels, choice_labels, n_licks = format_data(data, df_, t_times_,c_times_, window=window_)
+
+    # choose the labels
+    if labels=='reward':
+        t_labels = reward_labels
+
+    if labels=='choice':
+        t_labels = choice_labels 
 
     # Build and train the model then compute embeddings
     t_embed, b_embed = build_train_compute(nms_HD, t_labels,d=dimension)
 
-    # define the label classes
-    rewarded, unrewarded = define_label_classes(t_labels)
+    # define the label classes (p=rewarded/left n= unrewarded/right)
+    positive, negative = define_label_classes(t_labels)
 
     # view the embeddings
     #view_embedding(t_embed, b_embed, t_labels,label_class=[rewarded, unrewarded],title=missing_nm)
 
-    return t_embed, b_embed, t_labels, [rewarded,unrewarded]
+    return t_embed, b_embed, t_labels, [positive,negative]
 
 #--------------------------------------------------------------------
 
@@ -289,7 +320,7 @@ def plot4_embeddings(embeddings, labels , l_class, titles=['DA only', 'NE only',
 #--------------------------------------------------------------------
 
 # run nm analysis on mutliple nm datasets 
-def nm_analysis_2(data, df, trace_times, choice_times, title, window=None):
+def nm_analysis_2(data, df, trace_times, choice_times, title, label='reward', window=None):
 
     # collect embeddings, and the labels in lists
     behaviour_embeddings = []
@@ -298,7 +329,7 @@ def nm_analysis_2(data, df, trace_times, choice_times, title, window=None):
     # run the nm analysis on the individual nms
     for i, dataset in enumerate(data):
 
-        t_embed, b_embed, t_labels, [rewarded,unrewarded] = nm_analysis(dataset, df, trace_times, choice_times, window_=window)
+        t_embed, b_embed, t_labels, [positive,negative] = nm_analysis(dataset, df, trace_times, choice_times,labels=label, window_=window)
 
         behaviour_embeddings.append(b_embed)
         time_embedings.append(t_embed)
@@ -306,13 +337,12 @@ def nm_analysis_2(data, df, trace_times, choice_times, title, window=None):
         # collect the labels and label classes for use in the plotting
         # note that we assume they're the same for all datasets
 
-
         print("COMPLETED ANALYSIS OF NM {}".format(i))
 
     # plot them
     #plot4_embeddings(behaviour_embeddings,labels=t_labels,l_class=[rewarded,unrewarded],titles=title)
 
-    return behaviour_embeddings, time_embedings, t_labels, [rewarded,unrewarded]
+    return behaviour_embeddings, time_embedings, t_labels, [positive,negative]
 #--------------------------------------------------------------------
 
 # function to make datasets of combinations of 3 NMs
