@@ -163,6 +163,7 @@ def format_data(neural_data, df, trace_times_, choice_times_ , window=None , win
     # new labels
     reward_labels = []
     choice_labels = []
+    rpe_labels = []
     n_licks = []
 
 
@@ -206,6 +207,9 @@ def format_data(neural_data, df, trace_times_, choice_times_ , window=None , win
             choice_labels.append(0)
             n_licks.append(df['licks R'].iloc[i])
 
+        # get the rpe values at each trial
+        rpe_labels.append(df['rpe'].iloc[i])
+
     # stack the nm data for each trial
     nms_HD = np.stack(n_data_window).reshape((n_choice_trials,-1))
     # format it into a tensor
@@ -219,9 +223,12 @@ def format_data(neural_data, df, trace_times_, choice_times_ , window=None , win
     choice_labels = np.array(choice_labels)
     print("choice labels shape: ",choice_labels.shape)
 
+    # convert rpe labels to arrays
+    rpe_labels = np.array(rpe_labels)
+    print("rpe labels shape:", rpe_labels.shape)
 
 
-    return nms_HD, reward_labels, choice_labels, n_licks
+    return nms_HD, reward_labels, choice_labels, n_licks, rpe_labels
 
 #--------------------------------------------------------------------
 
@@ -229,7 +236,7 @@ def format_data(neural_data, df, trace_times_, choice_times_ , window=None , win
 def nm_analysis_(data, df_, t_times_, c_times_,labels='reward',window_=None,dimension=3,missing_nm=""):
 
     # format the data into 1s window around the choice and create the labels
-    nms_HD, reward_labels, choice_labels, n_licks = format_data(data, df_, t_times_,c_times_, window=window_)
+    nms_HD, reward_labels, choice_labels, n_licks, rpe_labels = format_data(data, df_, t_times_,c_times_, window=window_)
 
     if labels=='reward':
         trial_labels = reward_labels
@@ -253,20 +260,25 @@ def nm_analysis_(data, df_, t_times_, c_times_,labels='reward',window_=None,dime
 def nm_analysis(data, df_, t_times_, c_times_,labels='reward',window_=None,dimension=3,missing_nm=""):
 
     # format the data into 1s window around the choice and create the labels
-    nms_HD, reward_labels, choice_labels, n_licks = format_data(data, df_, t_times_,c_times_, window=window_)
+    nms_HD, reward_labels, choice_labels, n_licks, rpe_labels = format_data(data, df_, t_times_,c_times_, window=window_)
 
-    # choose the labels
+    # choose the labels and define label classes (p=rewarded/left n= unrewarded/right)
     if labels=='reward':
+        positive, negative = define_label_classes(reward_labels)
         t_labels = reward_labels
 
     if labels=='choice':
+        positive, negative = define_label_classes(choice_labels)
         t_labels = choice_labels 
+
+    # use reward labels for rpe
+    if labels=='rpe':
+        positive, negative = define_label_classes(reward_labels)
+        t_labels = rpe_labels
 
     # Build and train the model then compute embeddings
     t_embed, b_embed = build_train_compute(nms_HD, t_labels,d=dimension)
 
-    # define the label classes (p=rewarded/left n= unrewarded/right)
-    positive, negative = define_label_classes(t_labels)
 
     # view the embeddings
     #view_embedding(t_embed, b_embed, t_labels,label_class=[rewarded, unrewarded],title=missing_nm)
