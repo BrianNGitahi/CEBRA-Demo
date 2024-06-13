@@ -232,28 +232,34 @@ def format_data(neural_data, df, trace_times_, choice_times_ , window=None , win
 
 #--------------------------------------------------------------------
 
-# for each NM combination
-def nm_analysis_(data, df_, t_times_, c_times_,labels='reward',window_=None,dimension=3,missing_nm=""):
+# define function to take the choice labels and make a 'Switch' label
 
-    # format the data into 1s window around the choice and create the labels
-    nms_HD, reward_labels, choice_labels, n_licks, rpe_labels = format_data(data, df_, t_times_,c_times_, window=window_)
+def make_switch_label(choice_label):
 
-    if labels=='reward':
-        trial_labels = reward_labels
+    # make sure input is in array form
+    assert type(choice_label)==np.ndarray
 
-    if labels=='choice':
-        trial_labels = choice_labels
+    switch_labels = []
 
-    # Build and train the model then compute embeddings
-    t_embed, b_embed = build_train_compute(nms_HD,trial_labels,d=dimension)
+    for i in range(0,choice_label.shape[0]):
 
-    # define the label classes
-    rewarded, unrewarded = define_label_classes(trial_labels)
+        # should I just skip this first one?
+        if i==0:
+            switch_labels.append(0)
+            continue
 
-    # view the embeddings
-    view_embedding(t_embed, b_embed, trial_labels,label_class=[rewarded, unrewarded],main_title=missing_nm)
+        # make switch label based on previous trial
+        if choice_label[i]!=choice_label[i-1]:
+            switch_labels.append(1)        
+        
+        elif choice_label[i]==choice_label[i-1]:
+            switch_labels.append(0)
 
-    return nms_HD,t_embed, b_embed, trial_labels, [rewarded,unrewarded]
+    switch_labels = np.array(switch_labels)
+    print('Switch labels shape:', switch_labels.shape)
+
+    return switch_labels
+
 #--------------------------------------------------------------------
 
 # for each NM combination
@@ -264,13 +270,17 @@ def nm_analysis(data, df_, t_times_, c_times_,labels='reward',window_=None,dimen
 
     # choose the labels and define label classes (p=rewarded/left n= unrewarded/right)
     if labels=='reward':
-        positive, negative = define_label_classes(reward_labels)
         t_labels = reward_labels
+        positive, negative = define_label_classes(t_labels)
 
     if labels=='choice':
-        positive, negative = define_label_classes(choice_labels)
-        t_labels = choice_labels 
+        t_labels = choice_labels
+        positive, negative = define_label_classes(t_labels)
 
+    if labels == 'switch':
+        t_labels = make_switch_label(choice_labels)
+        positive, negative = define_label_classes(t_labels)
+ 
     # use reward labels for rpe
     if labels=='rpe':
         positive, negative = define_label_classes(reward_labels)
@@ -279,9 +289,6 @@ def nm_analysis(data, df_, t_times_, c_times_,labels='reward',window_=None,dimen
     # Build and train the model then compute embeddings
     t_embed, b_embed = build_train_compute(nms_HD, t_labels,d=dimension)
 
-
-    # view the embeddings
-    #view_embedding(t_embed, b_embed, t_labels,label_class=[rewarded, unrewarded],title=missing_nm)
 
     return t_embed, b_embed, t_labels, [positive,negative]
 
@@ -445,3 +452,12 @@ def get_auc(set_of_embeddings,trial_labels, n_iterations=1):
     return mean_scores, errors
 
 #--------------------------------------------------------------------
+# get r2 score (x==embedding, y=target/label)
+def reconstruction_score(x, y):
+
+    def _linear_fitting(x, y):
+        lin_model = sklearn.linear_model.LinearRegression()
+        lin_model.fit(x, y)
+        return lin_model.score(x, y), lin_model.predict(x)
+
+    return _linear_fitting(x, y)
