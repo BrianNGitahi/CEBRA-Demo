@@ -385,10 +385,7 @@ def create_datasets(traces_):
 
 
     return datasets
-
 #--------------------------------------------------------------------
-
-
 
 # get the data as individual datasets of each nm
 def individual_datasets(traces_):
