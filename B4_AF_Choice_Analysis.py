@@ -1,5 +1,7 @@
 """
-This script runs the analyses on multiple sessions
+This script runs the CEBRA analyses on multiple sessions using reward labels.
+Specifically, it runs the analysis on the data before the choice time and after the choice time
+and then outputs a bargraph with reconstruction performance scores for these two periods for the individual neuromodulators.
 """
 
 #%%
@@ -61,8 +63,6 @@ auc_b4_scores, sds_b4 =  utils.get_auc(b4b_embeds, labels_b4)
 
 afb_embeds, aft_embeds, labels_af, [r_af, unr_af] = utils.nm_analysis_2(ind_nm_data, df=df_trials_ses,trace_times=trace_times, choice_times=choice_times, window='after', title='Individual NMs')
 auc_af_scores, sds_af =  utils.get_auc(afb_embeds, labels_af)
-
-
 
 
 #%%

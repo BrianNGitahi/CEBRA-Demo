@@ -1,5 +1,6 @@
 """
-This script runs the analyses on multiple sessions
+This script runs the analyses on multiple sessions using the reward label and outputs the 
+reconstruction scores in a dataframe.
 """
 
 #%%

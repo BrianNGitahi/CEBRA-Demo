@@ -1,5 +1,6 @@
 """
-This script runs CEBRA on the NM data from NAc and makes embeddings based on reward labels
+This script runs CEBRA on the NM data from NAc and makes embeddings based on reward labels.
+It does this for different output embedding dimensions and makes a plot of AUC scores at each embedding dimension.
 """
 
 #%%
