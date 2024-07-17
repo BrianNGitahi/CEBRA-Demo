@@ -1,10 +1,11 @@
 # CEBRA-Demo
-This repository contains a concise demo and example on how to use CEBRA with your datasets.
-It will regularly be updated with more examples.
+This is a repository documenting some of the analyses performed with CEBRA on neuromodulator data acquired using fiber-photometry. 
+Specifically, the data is 4 neuromodulator's recorded simultaneously from the Nuclues Acumbens (there exists data from other regions..but these notebooks are using data from there).
 
-For first-time users, the Basics notebook is a good place to start. It contains snippets and examples from the original CEBRA demos on their website: https://cebra.ai/docs/demos.html (refer to these for more details).
+For a quick primer on CEBRA see the notebooks in the CEBRA_Pack repository, also linked on this webpage:https://brianngitahi.github.io/. 
 
-Once you have a basic idea of how CEBRA works and you want to use it on your data, take a look at the examples starting with the AIND-Data notebook. 
+- If you'd like to understand how the input data has been formatted, see the notebook: Signal_rewarded_unrewarded.ipynb 
+- 
 
 If you have trouble installing CEBRA you can refer also to this page: https://cebra.ai/docs/installation.html
 
