@@ -1,4 +1,9 @@
 # CEBRA-Demo
+
+![Python Version](https://img.shields.io/badge/python-3.9.7%2B-blue)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+![Documentation Coverage](https://img.shields.io/badge/documentation-100%25-brightgreen)
+
 This is a repository documenting some of the analyses performed with CEBRA on neuromodulator data acquired using fiber-photometry. 
 Specifically, the data is 4 neuromodulator's recorded simultaneously from the Nuclues Acumbens (there exists data from other regions..but these notebooks are using data from there).
 
