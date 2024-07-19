@@ -19,7 +19,7 @@ import cebra.datasets
 from cebra import CEBRA
 import torch
 import pickle
-import utils
+import cebra_pack.utils as cp 
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_recall_curve 
@@ -57,12 +57,12 @@ choice_times = df_trials_ses['choice_time'][0:n_trials].to_numpy()
 #%%
 
 # Individual NMs AUC scores: before and after
-ind_nm_data = utils.individual_datasets(traces_=traces)
-b4b_embeds, t4b_embeds, labels_b4, [rewarded_b, unrewarded_b] = utils.nm_analysis_2(ind_nm_data, df=df_trials_ses,trace_times=trace_times, choice_times=choice_times, window='before', title='Individual NMs')
-auc_b4_scores, sds_b4 =  utils.get_auc(b4b_embeds, labels_b4)
+ind_nm_data = cp.individual_datasets(traces_=traces)
+b4b_embeds, t4b_embeds, labels_b4, [rewarded_b, unrewarded_b] = cp.nm_analysis_2(ind_nm_data, df=df_trials_ses,trace_times=trace_times, choice_times=choice_times, window='before', title='Individual NMs')
+auc_b4_scores, sds_b4 =  cp.get_auc(b4b_embeds, labels_b4)
 
-afb_embeds, aft_embeds, labels_af, [r_af, unr_af] = utils.nm_analysis_2(ind_nm_data, df=df_trials_ses,trace_times=trace_times, choice_times=choice_times, window='after', title='Individual NMs')
-auc_af_scores, sds_af =  utils.get_auc(afb_embeds, labels_af)
+afb_embeds, aft_embeds, labels_af, [r_af, unr_af] = cp.nm_analysis_2(ind_nm_data, df=df_trials_ses,trace_times=trace_times, choice_times=choice_times, window='after', title='Individual NMs')
+auc_af_scores, sds_af =  cp.get_auc(afb_embeds, labels_af)
 
 
 #%%
