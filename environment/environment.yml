@@ -1,0 +1,13 @@
+environment_version: 1
+credentials:
+- type: api-key
+  id: 6hMc2PETe6VkQH
+  description: FIP CO Token
+  key: API_KEY
+  secret: API_SECRET
+- type: aws
+  id: htuzcWfDpKlpzU
+  description: AWS Assumable Role - aind-codeocean-user
+  access_key_id: AWS_ACCESS_KEY_ID
+  secret_access_key: AWS_SECRET_ACCESS_KEY
+  region: AWS_DEFAULT_REGION
