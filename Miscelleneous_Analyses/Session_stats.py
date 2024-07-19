@@ -18,7 +18,7 @@ import cebra.datasets
 from cebra import CEBRA
 import torch
 import pickle
-import utils
+import cebra_pack.utils as cp
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_recall_curve 
@@ -82,24 +82,24 @@ else:
 #----------------------------------------------------------------------------------------------------
 #%%
 # Individual NMs AUC scores
-ind_nm_data = utils.individual_datasets(traces_=traces)
-b_embeds, t_embeds, labels, [rewarded, unrewarded] = utils.nm_analysis_2(ind_nm_data, df=df_trials_ses,trace_times=trace_times, choice_times=choice_times, title='Individual NMs')
-auc_scores, sds =  utils.get_auc(b_embeds, labels)
+ind_nm_data = cp.individual_datasets(traces_=traces)
+b_embeds, t_embeds, labels, [rewarded, unrewarded] = cp.nm_analysis_2(ind_nm_data, df=df_trials_ses,trace_times=trace_times, choice_times=choice_times, title='Individual NMs')
+auc_scores, sds =  cp.get_auc(b_embeds, labels)
 
 
 #%%
 # AUC Score for all of them
-ball_embeds, tall_embeds, labels_all, [rewardeda, unrewardeda] = utils.nm_analysis_2([all_nms], df=df_trials_ses,trace_times=trace_times, choice_times=choice_times, title='ALL NMs')
-auca_scores, sds_a = utils.get_auc(ball_embeds, labels_all)
+ball_embeds, tall_embeds, labels_all, [rewardeda, unrewardeda] = cp.nm_analysis_2([all_nms], df=df_trials_ses,trace_times=trace_times, choice_times=choice_times, title='ALL NMs')
+auca_scores, sds_a = cp.get_auc(ball_embeds, labels_all)
 
 
 #%%
 # Before and after choice AUC scores + (bonus) best two embedding pairs 
-b4b_embeds, b4t_embeds, labels_b4, [r, unr] = utils.nm_analysis_2([all_nms],window='before')
-afb_embeds, aft_embeds, labels_af, [r_af, unr_af] = utils.nm_analysis_2([all_nms], window='after')
+b4b_embeds, b4t_embeds, labels_b4, [r, unr] = cp.nm_analysis_2([all_nms],window='before')
+afb_embeds, aft_embeds, labels_af, [r_af, unr_af] = cp.nm_analysis_2([all_nms], window='after')
 
-auc_b4_scores, sds_b4 = utils.get_auc(b4b_embeds, labels_b4)
-auc_af_scores, sds_af = utils.get_auc(afb_embeds, labels_af)
+auc_b4_scores, sds_b4 = cp.get_auc(b4b_embeds, labels_b4)
+auc_af_scores, sds_af = cp.get_auc(afb_embeds, labels_af)
 
 #%%
 # Signal Average in the 1 sec window
