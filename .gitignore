@@ -5,6 +5,10 @@
 /data/CO data/df.pkl
 
 
+# Code Ocean Folder
+/environment/
+/metadata/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
