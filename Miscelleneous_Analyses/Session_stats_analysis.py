@@ -49,6 +49,8 @@ df_all_labels_stats = pd.merge(df_choice_reward, df_all_rpe_sorted, on=['ses_idx
 df_all_labels_stats = df_all_labels_stats.drop(['ses_idx_count_x', 'ses_idx_count_y', 'ses_idx_count'], axis=1)
 df_all_labels_stats['ses_idx_count'] = df_all_labels_stats.groupby('subject_ID').cumcount() + 1
 
-
+#%% Save the resulting dataframe 
+results_folder = cp.define_resultsDir(save_dir='stats_files')
+df_all_labels_stats.to_pickle(results_folder + os.sep + 'session_stats_all_labels(211).pkl')
 
 # %%
