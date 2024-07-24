@@ -19,7 +19,7 @@ import cebra.datasets
 from cebra import CEBRA
 import torch
 import pickle
-import cebra_pack.utils as cp 
+import cebra_pack.cebra_utils as cp 
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import precision_recall_curve 
@@ -36,13 +36,13 @@ import pandas as pd
 #%%
 
 # load the dataframe
-df_trials_ses = pickle.load(open('/Users/brian.gitahi/Desktop/AIND/CEBRA/Git/CEBRA-Demo/data/CO data/df.pkl', "rb"))
+df_trials_ses = pickle.load(open('../data/CO data/df.pkl', "rb"))
 
 # load the dictionary containing the traces
-traces = pickle.load(open('/Users/brian.gitahi/Desktop/AIND/CEBRA/Git/CEBRA-Demo/data/CO data/traces.pkl', "rb"))
+traces = pickle.load(open('../data/CO data/traces.pkl', "rb"))
 
 # load the trace times
-trace_times = np.load('/Users/brian.gitahi/Desktop/AIND/CEBRA/Git/CEBRA-Demo/data/CO data/Trace times.npy', allow_pickle=True)
+trace_times = np.load('../data/CO data/Trace times.npy', allow_pickle=True)
 
 
 # Combine the traces for all NMs into one 2D array
@@ -110,5 +110,4 @@ ax.set_ylim(0.5, 1)
 
 plt.show()
 
-
-# %%
+plt.savefig('Before/After choice Individual NMs.png')

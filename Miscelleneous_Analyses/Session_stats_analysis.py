@@ -32,9 +32,9 @@ import pandas as pd
 
 
 #%% LOAD THE DATA
-df_all_choice = pickle.load(open("/Users/brian.gitahi/Desktop/AIND/CEBRA/Git/CEBRA-Demo/stats_files/all_session_stats_choice.pkl", "rb"))
-df_all_reward =  pickle.load(open("/Users/brian.gitahi/Desktop/AIND/CEBRA/Git/CEBRA-Demo/stats_files/all_session_stats_reward.pkl", "rb"))
-df_all_rpe = pickle.load(open("/Users/brian.gitahi/Desktop/AIND/CEBRA/Git/CEBRA-Demo/stats_files/all_session_stats(rpe).pkl", "rb"))
+df_all_choice = pickle.load(open("../stats_files/all_session_stats_choice.pkl", "rb"))
+df_all_reward =  pickle.load(open("../stats_files/all_session_stats_reward.pkl", "rb"))
+df_all_rpe = pickle.load(open("../stats_files/all_session_stats(rpe).pkl", "rb"))
 
 ## make sure all of them are sorted in the same order
 df_all_choice_sorted = df_all_choice.sort_values(by='ses_idx').reset_index(drop=True)
@@ -53,4 +53,3 @@ df_all_labels_stats['ses_idx_count'] = df_all_labels_stats.groupby('subject_ID')
 results_folder = cp.define_resultsDir(save_dir='stats_files')
 df_all_labels_stats.to_pickle(results_folder + os.sep + 'session_stats_all_labels(211).pkl')
 
-# %%
