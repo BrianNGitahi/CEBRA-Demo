@@ -11,9 +11,9 @@ This data can be found in the Code Ocean [Capsule](https://codeocean.allenneural
   - git clone https://github.com/BrianNGitahi/CEBRA_Pack
   - cd CEBRA_Pack
   - pip install .
-- download the data from the data folder in the code ocean capsule: https://codeocean.allenneuraldynamics.org/capsule/2441328/tree?cw=true (to avoid path errors, I suggest you create a similar folder structure in your repository)
+- download the data from the data folder in the Code Ocean [capsule](https://codeocean.allenneuraldynamics.org/capsule/2441328/tree?cw=true) (to avoid path errors, I suggest you create a similar folder structure in your repository)
 
-For a quick primer on CEBRA see the notebooks in the CEBRA_Pack repository, also linked on this webpage:https://brianngitahi.github.io/. 
+For a quick primer on CEBRA see the notebooks in the CEBRA_Pack repository, also linked on this [webpage](https://brianngitahi.github.io/). 
 
 
 NB: 
