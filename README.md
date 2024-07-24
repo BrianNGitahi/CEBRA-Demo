@@ -7,7 +7,7 @@
 This is a repository documenting some of the analyses performed with CEBRA on neuromodulator data acquired using fiber-photometry. 
 Specifically, the data is 4 neuromodulator's recorded simultaneously from the Nuclues Acumbens (there exists data from other regions, but these notebooks are using data from there).
 
-This data can be found in the Code Ocean Capsule associated with this repository. If you run it in that capsule (this is the suggested way), no changes to the data loading are needed but you will need to start by installing the package within your environment (see step 1 below). If you clone the repository from git, you'll need to:
+This data can be found in the Code Ocean ![Capsule](https://codeocean.allenneuraldynamics.org/capsule/2441328/tree?cw=true) associated with this repository. If you run it in that capsule (this is the suggested way), no changes to the data loading are needed but you will need to start by installing the package within your environment (see step 1 below). If you clone the repository from git, you'll need to:
 - install within a conda environment:
   - git clone https://github.com/BrianNGitahi/CEBRA_Pack
   - cd CEBRA_Pack
