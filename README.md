@@ -20,3 +20,5 @@ NB:
 - If you'd like to understand how the input data has been formatted, see the notebook: [Signal_rewarded_unrewarded.ipynb](https://github.com/BrianNGitahi/CEBRA-Demo/blob/main/Neural_Data_Analyses/Signal_rewarded_unrewarded.ipynb)
 - If you have trouble installing CEBRA you can refer also to this [page](https://cebra.ai/docs/installation.html)
 
+
+Contact: bgitahi[at]alumni.princeton.edu
